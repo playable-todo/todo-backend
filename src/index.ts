@@ -16,13 +16,23 @@ app.use(cors(corsOptions));
 // Redis
 const redis = require('./helpers/redis');
 
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+
 // Middlewares
-const errorHandler = require('./middleware/errorHandler')
+const errorHandler = require('./middleware/errorHandler');
+const verifyJWT = require('./middleware/verifyJWT');
+
 
 // Routes
 const authRoutes = require('./routes/auth');
+const memberRoutes = require('./routes/member');
 
 app.use('/oauth', authRoutes);
+app.use(verifyJWT)
+app.use('/account', memberRoutes);
 
 app.use(errorHandler);
 
