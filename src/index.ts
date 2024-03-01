@@ -7,8 +7,11 @@ dotenv.config();
 const app: Express = express();
 const PORT = process.env.PORT || 8000;
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// Cors
+import cors from 'cors';
+const corsOptions = require('./config/corsOptions');
+
+app.use(cors(corsOptions));
 
 // Redis
 const redis = require('./helpers/redis');
