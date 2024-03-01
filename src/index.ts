@@ -4,20 +4,25 @@ import dotenv from 'dotenv';
 //For env File 
 dotenv.config();
 
-
 const app: Express = express();
 const PORT = process.env.PORT || 8000;
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 // Redis
 const redis = require('./helpers/redis');
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Welcome to Express & TypeScript Server');
-});
 // Middlewares
 const errorHandler = require('./middleware/errorHandler')
 
+// Routes
+const authRoutes = require('./routes/auth');
+
+app.use('/oauth', authRoutes);
+
 app.use(errorHandler);
+
 const startUp = async () => {
     try {
         await redis.RedisClient.connect();
