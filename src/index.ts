@@ -14,7 +14,10 @@ const redis = require('./helpers/redis');
 app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to Express & TypeScript Server');
 });
+// Middlewares
+const errorHandler = require('./middleware/errorHandler')
 
+app.use(errorHandler);
 const startUp = async () => {
     try {
         await redis.RedisClient.connect();
