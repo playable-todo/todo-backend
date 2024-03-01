@@ -29,10 +29,12 @@ const verifyJWT = require('./middleware/verifyJWT');
 // Routes
 const authRoutes = require('./routes/auth');
 const memberRoutes = require('./routes/member');
+const todoRoutes = require('./routes/todo');
 
 app.use('/oauth', authRoutes);
 app.use('/account', memberRoutes);
 app.use(verifyJWT)
+app.use('/todo', todoRoutes);
 
 app.use(errorHandler);
 
