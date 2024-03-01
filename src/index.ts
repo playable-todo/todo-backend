@@ -31,8 +31,8 @@ const authRoutes = require('./routes/auth');
 const memberRoutes = require('./routes/member');
 
 app.use('/oauth', authRoutes);
-app.use(verifyJWT)
 app.use('/account', memberRoutes);
+app.use(verifyJWT)
 
 app.use(errorHandler);
 
