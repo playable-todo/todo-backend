@@ -102,3 +102,109 @@ exports.postTodoList = async function (req: Request, res: Response, next: NextFu
         next(err)
     }
 }
+
+exports.putTodoList = async function (req: Request, res: Response, next: NextFunction) { 
+    const getRedisData = await redis.RedisClient.get('currentUser');
+    const parseUser = JSON.parse(getRedisData);
+
+    const {user_id, username} = parseUser;
+    const todo_id =  req.params.todo_id;
+
+    const {title, todo, oldFiles} = req.body;
+
+    interface deletedImageProps {
+        url: string;
+        pathName: string;
+        mimeType: string;
+    }
+
+    const files: any[] = Array.isArray(req.files) ? req.files : [req.files];
+
+    const deletedFiles: deletedImageProps[] = JSON.parse(oldFiles);
+
+    try {
+        if (!title || title == '') {
+            throw new CustomError(403, "title alanını belirtmelisiniz.");
+        }
+        if (!todo || todo == '') {
+            throw new CustomError(403, "todo alanını belirtmelisiniz.");
+        }
+
+        const imageFiles = files.length > 0 && files.filter(file => file.mimetype.startsWith('image'));
+        const otherFiles = files.length > 0 && files.filter(file => !file.mimetype.startsWith('image'));
+
+        const imageOldFiles = deletedFiles.length > 0 && deletedFiles.filter(file => file.mimeType.startsWith('image'))[0];
+        const otherOldFiles = deletedFiles.length > 0 &&  deletedFiles.filter(file => !file.mimeType.startsWith('image'))[0];
+
+        const oldTodoQuery = `
+            SELECT
+                todo_id,
+                image,
+                attachment
+            FROM
+                todo
+            WHERE
+                todo_id = $1
+            AND
+                user_id = $2
+        `
+        const oldTodoResponse = await pool.query(oldTodoQuery, [todo_id, user_id])
+        const oldTodo = oldTodoResponse.rows[0];
+
+        if(!oldTodo){
+            throw new CustomError(204, "bulunamadı");
+        }
+       
+        let getImage;
+        if(Object.keys(imageFiles).length > 0){
+            getImage =  await File.uploadFiles(imageFiles, 'members/' + username  + '/' +  oldTodo?.todo_id + '/', oldTodo?.image?.pathName);
+        }
+        else if (imageOldFiles){
+            getImage = [];
+            await File.deletedFiles(imageOldFiles.pathName)
+        }
+        else{
+            getImage = [oldTodo?.image]
+        }   
+
+        let getAttachment
+        if(Object.keys(otherFiles).length > 0){
+            getAttachment = await File.uploadFiles(otherFiles, 'members/' + username  + '/' +  oldTodo?.todo_id + '/', oldTodo?.attachment?.pathName);
+        }
+        else if (otherOldFiles){
+            getAttachment = [];
+            await File.deletedFiles(otherOldFiles.pathName)
+        }
+        else{
+            getAttachment = [oldTodo?.attachment]
+        }
+
+        const updateQuery = `
+            UPDATE
+                todo
+            SET
+                title = $1, 
+                content = $2, 
+                image = $3, 
+                attachment = $4
+            WHERE
+                todo_id = $5
+        `;
+
+        const values = [
+            title, 
+            todo, 
+            getImage[0], 
+            getAttachment[0], 
+            todo_id
+        ]; 
+
+        await pool.query(updateQuery, values);
+
+        return res.status(200).json({ sucess: true })
+
+    }catch (err){
+        next(err)
+    }
+}
+

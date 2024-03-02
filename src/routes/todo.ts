@@ -6,5 +6,6 @@ const multer = require('../helpers/multer');
 
 router.get('/list', todoController.getTodoList);
 router.post('/list',  multer.file_upload.array('file'), todoController.postTodoList, multer.body_parse.array());
+router.put('/list/:todo_id', multer.file_upload.array('file'), todoController.putTodoList, multer.body_parse.array());
 
 module.exports = router;
