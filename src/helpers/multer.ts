@@ -1,11 +1,11 @@
 const multer = require('multer');
 
 const storage = multer.memoryStorage();
-const image_upload = multer({storage});
+const file_upload = multer({storage});
 
 const body_parse = multer();
 
 module.exports = {
     body_parse,
-    image_upload
+    file_upload
 }

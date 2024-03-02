@@ -3,7 +3,7 @@ const CustomError = require('../errors/CustomError');
 
 const pool = require('../helpers/postgre');
 const redis = require('../helpers/redis');
-const Image = require('../helpers/imageUpload');
+const File = require('../helpers/fileUpload');
 
 exports.getTodoList = async function (req: Request, res: Response, next: NextFunction) {
     const getRedisData = await redis.RedisClient.get('currentUser');
@@ -57,7 +57,7 @@ exports.postTodoList = async function (req: Request, res: Response, next: NextFu
             mimeType: string
         }
 
-        const todoFile: todoFileProps[] = await Image.uploadImages(files, 'members/' + username  + '/' +  title + '/' );
+        const todoFile: todoFileProps[] = await File.uploadFiles(files, 'members/' + username  + '/' +  title + '/' );
         
         const getImage = todoFile.length > 0 && todoFile.filter(file => file.mimeType.includes('image'))[0];
         const getAttachment =  todoFile.length > 0 && todoFile.filter(file => !file.mimeType.includes('image'))[0];
