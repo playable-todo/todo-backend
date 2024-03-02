@@ -51,26 +51,51 @@ exports.postTodoList = async function (req: Request, res: Response, next: NextFu
             throw new CustomError(403, "todo alanını belirtmelisiniz.");
         }
 
-        type todoFileProps = {
-            url?: string, 
-            path: string, 
-            mimeType: string
-        }
-
-        const todoFile: todoFileProps[] = await File.uploadFiles(files, 'members/' + username  + '/' +  title + '/' );
-        
-        const getImage = todoFile.length > 0 && todoFile.filter(file => file.mimeType.includes('image'))[0];
-        const getAttachment =  todoFile.length > 0 && todoFile.filter(file => !file.mimeType.includes('image'))[0];
-
         const insertQuery = `
             INSERT INTO 
-                todo (title, content, user_id, image, attachment) 
+                todo (title, content, user_id) 
             VALUES
-                ($1, $2, $3, $4, $5)
+                ($1, $2, $3)
+            RETURNING
+                *
         `;
 
-        const values = [title, todo, user_id, getImage, getAttachment];
-        await pool.query(insertQuery, values);
+        const values = [title, todo, user_id];
+        const insertResponse = await pool.query(insertQuery, values);
+        const insertResult = insertResponse.rows;
+
+        if(insertResult.length > 0){
+            const todo_id = insertResult[0].todo_id;
+
+            type todoFileProps = {
+                url?: string, 
+                path: string, 
+                mimeType: string
+            }
+    
+            const todoFile: todoFileProps[] = await File.uploadFiles(files, 'members/' + username  + '/' +  todo_id + '/' );
+            
+            const getImage = todoFile.length > 0 && todoFile.filter(file => file.mimeType.includes('image'))[0];
+            const getAttachment =  todoFile.length > 0 && todoFile.filter(file => !file.mimeType.includes('image'))[0];
+
+            const updateQuery = `
+                UPDATE
+                    todo
+                SET
+                    image = $1, 
+                    attachment = $2
+                WHERE
+                    todo_id = $3
+            `;
+
+            const values = [
+                getImage, 
+                getAttachment,
+                todo_id
+            ]; 
+
+            await pool.query(updateQuery, values)
+        }
  
         return res.status(201).json({ sucess: true })
     }catch (err) {
