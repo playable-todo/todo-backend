@@ -15,16 +15,15 @@ app.use(cors(corsOptions));
 
 // Redis
 const redis = require('./helpers/redis');
-
+const path = require("path");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
+app.use('/static', express.static(path.join(__dirname, '../public')))
 
 // Middlewares
 const errorHandler = require('./middleware/errorHandler');
 const verifyJWT = require('./middleware/verifyJWT');
-
 
 // Routes
 const authRoutes = require('./routes/auth');
@@ -33,9 +32,8 @@ const todoRoutes = require('./routes/todo');
 
 app.use('/oauth', authRoutes);
 app.use('/account', memberRoutes);
-app.use(verifyJWT)
 app.use('/todo', todoRoutes);
-
+app.use(verifyJWT)
 app.use(errorHandler);
 
 const startUp = async () => {
