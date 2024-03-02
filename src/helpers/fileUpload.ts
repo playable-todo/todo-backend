@@ -4,13 +4,20 @@ import sharp from 'sharp';
 
 interface UploadedFiles {
     url: string;
-    path: string;
+    name: string;
+    pathName: string,
     mimeType: string; 
 }
 
 async function uploadFiles(files: any[], who: string, deleteIfExist: string = ''): Promise<UploadedFiles[]> {
     try {
         const uploadedImages: UploadedFiles[] = [];
+
+        console.log(deleteIfExist)
+
+        if (deleteIfExist && fs.existsSync(deleteIfExist)) {
+            fs.unlinkSync(deleteIfExist);
+        }
 
         for (const file of files) {
             let compressedBuffer;
@@ -33,15 +40,12 @@ async function uploadFiles(files: any[], who: string, deleteIfExist: string = ''
             }
             const filePath = path.join(folderPath, `${file.originalname}`);
 
-            if (deleteIfExist) {
-                fs.unlinkSync(deleteIfExist);
-            }
-
             // Sıkıştırılmış veya sıkıştırılmamış resmi dosyaya yaz
             fs.writeFileSync(filePath, compressedBuffer);
 
             const url = '/static/files/' + who + file.originalname;
-            uploadedImages.push({ url, path: filePath, mimeType });
+            const pathName = 'public/files/' + who + file.originalname;
+            uploadedImages.push({ url, name: file.originalname, pathName, mimeType });
         }
 
         return uploadedImages;
@@ -50,6 +54,25 @@ async function uploadFiles(files: any[], who: string, deleteIfExist: string = ''
     }
 }
 
+async function deletedFiles(filePath: string): Promise<void> {
+    console.log(filePath)
+    return new Promise<void>((resolve, reject) => {
+        fs.access(filePath, fs.constants.F_OK, (err) => {
+            if (!err) {
+                // Dosya mevcut, silelim
+                fs.unlink(filePath, (err) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve();
+                    }
+                });
+            } else {
+                // Dosya mevcut değil, hiçbir şey yapmayalım
+                resolve();
+            }
+        });
+    });
+}
 
-
-module.exports = {uploadFiles}
+module.exports = {uploadFiles, deletedFiles}
