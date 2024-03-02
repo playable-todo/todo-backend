@@ -55,7 +55,6 @@ async function uploadFiles(files: any[], who: string, deleteIfExist: string = ''
 }
 
 async function deletedFiles(filePath: string): Promise<void> {
-    console.log(filePath)
     return new Promise<void>((resolve, reject) => {
         fs.access(filePath, fs.constants.F_OK, (err) => {
             if (!err) {
