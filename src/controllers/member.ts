@@ -94,7 +94,6 @@ exports.postMember =  async function(req: Request, res: Response, next: NextFunc
 
         return res.status(200).json({'success': 'true'});
     }catch (err){
-        console.log(err)
         next(err);
     }
 }
