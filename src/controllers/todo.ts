@@ -64,7 +64,7 @@ exports.postTodoList = async function (req: Request, res: Response, next: NextFu
         const insertResponse = await pool.query(insertQuery, values);
         const insertResult = insertResponse.rows;
 
-        if(insertResult.length > 0){
+        if(insertResult.length > 0 && files?.length !== 0 ){
             const todo_id = insertResult[0].todo_id;
 
             type todoFileProps = {
