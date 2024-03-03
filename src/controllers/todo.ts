@@ -20,7 +20,8 @@ exports.getTodoList = async function (req: Request, res: Response, next: NextFun
                 td.image,
                 td.attachment,
                 td.is_make,
-                tag.title as tag_name
+                tag.title as tag_name,
+                tag.tag_id
             FROM
                 todo td
             LEFT JOIN
