@@ -19,9 +19,14 @@ exports.getTodoList = async function (req: Request, res: Response, next: NextFun
                 td.content,
                 td.image,
                 td.attachment,
-                td.is_make
+                td.is_make,
+                tag.title as tag_name
             FROM
                 todo td
+            LEFT JOIN
+                todo_tags tag
+            ON
+                td.tag_id = tag.tag_id
             WHERE
                 td.user_id = $1
         `;
@@ -29,7 +34,17 @@ exports.getTodoList = async function (req: Request, res: Response, next: NextFun
         const todoResults = await pool.query(todoSqlQuery, [user_id]);
         const todos = todoResults.rows;
 
-        return res.status(200).json(todos);
+        const tagSqlQuery = `
+            SELECT
+                *
+            FROM
+                todo_tags
+        `;
+
+        const tagResults = await pool.query(tagSqlQuery);
+        const tags = tagResults.rows;
+
+        return res.status(200).json({todos, tags});
     }catch (err){
         next(err)
     }
