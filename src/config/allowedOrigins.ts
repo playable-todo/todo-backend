@@ -1,5 +1,5 @@
 const allowedOrigins = [
-    'https://www.yoursite.com',
+    'https://todo-web-lovat.vercel.app',
     'http://localhost:5173',
     'http://localhost:8000'
 ];
