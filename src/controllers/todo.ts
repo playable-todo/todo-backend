@@ -40,9 +40,9 @@ exports.postTodoList = async function (req: Request, res: Response, next: NextFu
     const parseUser = JSON.parse(getRedisData);
     const {user_id, username} = parseUser;
 
-    const {title, todo} = req.body;
+    const {title, todo, selected_tag} = req.body;
     const files = req.files
-    
+
     try {
         if (!title || title == '') {
             throw new CustomError(403, "title alanını belirtmelisiniz.");
@@ -53,14 +53,14 @@ exports.postTodoList = async function (req: Request, res: Response, next: NextFu
 
         const insertQuery = `
             INSERT INTO 
-                todo (title, content, user_id) 
+                todo (title, content, user_id, tag_id) 
             VALUES
-                ($1, $2, $3)
+                ($1, $2, $3, $4)
             RETURNING
                 *
         `;
 
-        const values = [title, todo, user_id];
+        const values = [title, todo, user_id, selected_tag == '0' ? null : selected_tag];
         const insertResponse = await pool.query(insertQuery, values);
         const insertResult = insertResponse.rows;
 
