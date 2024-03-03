@@ -13,8 +13,6 @@ async function uploadFiles(files: any[], who: string, deleteIfExist: string = ''
     try {
         const uploadedImages: UploadedFiles[] = [];
 
-        console.log(deleteIfExist)
-
         if (deleteIfExist && fs.existsSync(deleteIfExist)) {
             fs.unlinkSync(deleteIfExist);
         }

@@ -8,11 +8,13 @@ const File = require('../helpers/fileUpload');
 exports.getTodoList = async function (req: Request, res: Response, next: NextFunction) {
     const getRedisData = await redis.RedisClient.get('currentUser');
     const parseUser = JSON.parse(getRedisData);
-
     const user_id = parseUser.user_id;
 
+    const searchQuery = req.query.search;
+    const tagQuery = req.query.tag;
+
     try {
-        const todoSqlQuery = `
+        let todoSqlQuery = `
             SELECT
                 td.todo_id,
                 td.title,
@@ -31,8 +33,29 @@ exports.getTodoList = async function (req: Request, res: Response, next: NextFun
             WHERE
                 td.user_id = $1
         `;
-        
-        const todoResults = await pool.query(todoSqlQuery, [user_id]);
+
+        let filters = [];
+        let searchValues = [];
+
+        if(searchQuery){
+            filters.push(`(td.title ILIKE $${filters.length + 2} OR td.content ILIKE $${filters.length + 3})`);
+            searchValues.push(`%${searchQuery}%`);
+            searchValues.push(`%${searchQuery}%`);
+        }
+
+        if(tagQuery){
+            filters.push(`(td.tag_id = $${filters.length > 0 ? filters.length + 3 : filters.length + 2})`);
+            searchValues.push(tagQuery);
+        }
+
+        if(filters.length > 0){
+            todoSqlQuery += ' AND ' + filters.join(' AND')
+        }
+
+        const sqlQueryValues = [user_id]
+        const values = sqlQueryValues.concat(searchValues)
+
+        const todoResults = await pool.query(todoSqlQuery, values);
         const todos = todoResults.rows;
 
         const tagSqlQuery = `
