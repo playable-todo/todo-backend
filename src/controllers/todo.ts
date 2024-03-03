@@ -125,7 +125,7 @@ exports.putTodoList = async function (req: Request, res: Response, next: NextFun
     const {user_id, username} = parseUser;
     const todo_id =  req.params.todo_id;
 
-    const {title, todo, oldFiles} = req.body;
+    const {title, todo, oldFiles, selected_tag} = req.body;
 
     interface deletedImageProps {
         url: string;
@@ -201,9 +201,10 @@ exports.putTodoList = async function (req: Request, res: Response, next: NextFun
                 title = $1, 
                 content = $2, 
                 image = $3, 
-                attachment = $4
+                attachment = $4,
+                tag_id = $5
             WHERE
-                todo_id = $5
+                todo_id = $6
         `;
 
         const values = [
@@ -211,6 +212,7 @@ exports.putTodoList = async function (req: Request, res: Response, next: NextFun
             todo, 
             getImage[0], 
             getAttachment[0], 
+            selected_tag == '0' ? null : selected_tag,
             todo_id
         ]; 
 
