@@ -208,3 +208,52 @@ exports.putTodoList = async function (req: Request, res: Response, next: NextFun
     }
 }
 
+exports.deleteTodoList = async function(req: Request, res: Response, next: NextFunction) {
+    const todo_id =  req.params.todo_id;
+
+    const getRedisData = await redis.RedisClient.get('currentUser');
+    const parseUser = JSON.parse(getRedisData);
+
+    const {user_id} = parseUser;
+
+    try {
+        const oldTodoQuery = `
+            SELECT
+                *
+            FROM
+                todo
+            WHERE
+                todo_id = $1
+            AND
+                user_id = $2
+        `
+        const oldTodoResponse = await pool.query(oldTodoQuery, [todo_id, user_id])
+        const oldTodo = oldTodoResponse.rows[0];
+
+        if(!oldTodo){
+            throw new CustomError(204, "bulunamadı");
+        }
+
+        // delete all file for todo 
+
+        if(oldTodo?.image){
+            await File.deletedFiles(oldTodo.image.pathName)
+        }
+        if(oldTodo?.attachment){
+            await File.deletedFiles(oldTodo.attachment.pathName)
+        }
+
+        const deleteTodoQuery = `
+            DELETE FROM
+                todo
+            WHERE
+                todo_id = $1
+        `;
+
+        await pool.query(deleteTodoQuery, [todo_id])
+
+        return res.status(200).json({ 'success' : true});
+    }catch (err){
+        next(err)
+    }
+}
